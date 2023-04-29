@@ -12,7 +12,7 @@ load_dotenv()
 #profile_url = input("Please paste the linkedin URL you want to scrape: ")
 profile_url = 'https://www.linkedin.com/in/jon-ali-b461b4274/'
 
-# Start Driver
+# Do the things, go batman!
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
 driver = webdriver.Chrome(options=chrome_options)
@@ -34,6 +34,5 @@ driver.get(profile_url)
 driver.implicitly_wait(5)
 
 # About Section
-about1 = driver.find_element(By.XPATH, '//div[contains(@Id, "about")]//span[contains(text(), "Hello")]').text
-print(about1)
-
+about = driver.find_element(By.XPATH, "//div[@id='about']//following-sibling::div[2]//descendant::span[@aria-hidden='true']")
+print(about.text)

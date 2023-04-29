@@ -51,14 +51,14 @@ class LinkedInScraper:
         # Check if we are already logged in. linkedin.com/feed is only
         # accessible by a logged in user
         self.driver.get("https://linkedin.com/feed") 
-        self.driver.implicitly_wait(2)
+        self.driver.implicitly_wait(5)
         if self.driver.current_url == "https://linkedin.com/feed":
             self.logged_in = True
             return True
         
         # Navigate to LinkedIn and login
         self.driver.get("https://linkedin.com")
-        self.driver.implicitly_wait(2)
+        self.driver.implicitly_wait(10)
         self.driver.find_element(By.ID, 'session_key').send_keys(self.username) # Enter username
         self.driver.find_element(By.ID, 'session_password').send_keys(self.password) # Enter password
         # Submit login form
@@ -66,12 +66,17 @@ class LinkedInScraper:
             By.XPATH, 
             "//button[@data-id='sign-in-form__submit-btn' and contains(text(), 'Sign in')]"
         ).submit()
-        self.driver.implicitly_wait(2)
+        self.driver.implicitly_wait(10)
+        # Check for captcha
+        print(self.driver.title)
+        if self.driver.title == "Security Verification | LinkedIn":
+            print("Captcha detected! Please complete the captcha then click enter to continue.")
+            input()
+        self.driver.implicitly_wait(4)
 
         # Validate we are logged in
         self.driver.get("https://linkedin.com/feed") 
-        self.driver.implicitly_wait(2)
-        print(self.driver.current_url)
+        self.driver.implicitly_wait(5)
         if self.driver.current_url == "https://www.linkedin.com/feed/":
             self.logged_in = True
             return True
@@ -110,10 +115,9 @@ class LinkedInScraper:
         # Get current employer
 
         # Get about
-        profile['about'] = self.driver.find_element(
-            By.XPATH,
-            "//div[@id='about']//following-sibling::div[2]//descendant::span[@aria-hidden='true']"
-        ).text
+        about = self.driver.find_element(By.XPATH, "//div[@id='about']//following-sibling::div[2]//descendant::span[@aria-hidden='true']")
+        print(about.text)
+        profile['about'] = about.text
 
         # Get experience
 
@@ -130,6 +134,7 @@ class LinkedInScraper:
         # Get all sorts of other stuff. The list could go on for ages! 
         # This method should be for getting data from a linkedin profile, not
         # from companies or other parts of linkedin
+        return profile
 
 
 # CLI version of module
@@ -150,7 +155,7 @@ def main():
                           The output file to write the scraped data to. default profile.json
     """
     parser = argparse.ArgumentParser(description=help)
-    parser.add_argument('profile_url', metavar='profile_url', type=str, nargs='+')
+    parser.add_argument('profile_url', metavar='profile_url', type=str)
     parser.add_argument('-o', '--out_file', metavar='out_file', type=str)
     args = parser.parse_args()
 
@@ -165,7 +170,7 @@ def main():
 
     # Try to scrape a profile using LinkedInScraper
     try:
-        scraper = LinkedInScraper(username, password, headless=False, detach=True)
+        scraper = LinkedInScraper(username, password, headless=False, detach=False)
         scraper.login()
         profile = scraper.get_profile(args.profile_url)
         print(profile)

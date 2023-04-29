@@ -5,25 +5,35 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
+# imports credential variabales from .env
 load_dotenv()
-profile_url = input("Please paste the linkedin URL you want to scrape: ")
 
+# Ask for LinkedIn URL to Scrape
+#profile_url = input("Please paste the linkedin URL you want to scrape: ")
+profile_url = 'https://www.linkedin.com/in/jon-ali-b461b4274/'
+
+# Start Driver
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=chrome_options)
 driver.get("https://linkedin.com")
 driver.implicitly_wait(2)
+
+# Login
 username_field = driver.find_element(By.ID, 'session_key')
 username_field.send_keys(environ['LINKEDIN_USERNAME'])
 password_field = driver.find_element(By.ID, 'session_password')
 password_field.send_keys(environ['LINKEDIN_PASSWORD'])
 submit = driver.find_element(By.CLASS_NAME, 'sign-in-form__submit-btn--full-width')
 submit.submit()
+
+# Go to target URL
 driver.implicitly_wait(5)
 driver.get(profile_url)
+# Wait
 driver.implicitly_wait(5)
-html = driver.page_source
 
-soup = BeautifulSoup(html, 'html.parser')
-about_div = soup.find('div', {"id": "about"})
-print(about_div)
+# About Section
+about1 = driver.find_element(By.XPATH, '//div[contains(@Id, "about")]//span[contains(text(), "Hello")]').text
+print(about1)
+
